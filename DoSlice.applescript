@@ -2,10 +2,12 @@
 -- Version 1.1 (May 10, 2013)
 -- Drop an STL onto this, choose a config file, and wait
 
+set SLICER_APP to "Slic3r"
+
 on open fileList
-	set slic3rMac to ApplicationAlias("Slic3r")
+	set slic3rMac to ApplicationAlias(SLICER_APP)
 	set slic3rHome to posix_dirname(slic3rMac)
-	set theConfig to choose file with prompt "Choose a Slic3r config file" of type {"public.plain-text"} default location (POSIX file slic3rHome) without invisibles
+	set theConfig to choose file with prompt "Choose a " &SLICER_APP& " config file" of type {"public.plain-text"} default location (POSIX file slic3rHome) without invisibles
 	set SLICER to (POSIX path of slic3rMac) & "Contents/MacOS/slic3r"
 	set CONFIG to regex(posix_basename(theConfig), "^config-?|\\.ini$", "")
 	set filesDone to 0
@@ -35,8 +37,8 @@ on open fileList
 	set leftover to lingerTime - (timestamp2 - timestamp1)
 	if leftover < 0.5 then set leftover to 0.5
 	repeat leftover * 2 times
-		if application "Slic3r" is running then
-			tell application "Slic3r" to quit
+		if application SLICER_APP is running then
+			tell application SLICER_APP to quit
 			quit
 		end if
 		delay 0.5
