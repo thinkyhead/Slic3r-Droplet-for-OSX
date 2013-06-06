@@ -1,13 +1,12 @@
 -- Slic3r batch script by Thinkyhead
--- Version 1.1 (May 10, 2013)
+-- Version 1.2 (June 6, 2013)
 -- Drop an STL onto this, choose a config file, and wait
 
-set SLICER_APP to "Slic3r"
-
 on open fileList
+	set SLICER_APP to "Slic3r"
 	set slic3rMac to ApplicationAlias(SLICER_APP)
 	set slic3rHome to posix_dirname(slic3rMac)
-	set theConfig to choose file with prompt "Choose a " &SLICER_APP& " config file" of type {"public.plain-text"} default location (POSIX file slic3rHome) without invisibles
+	set theConfig to choose file with prompt "Choose a " & SLICER_APP & " config file" of type {"public.plain-text"} default location (POSIX file slic3rHome) without invisibles
 	set SLICER to (POSIX path of slic3rMac) & "Contents/MacOS/slic3r"
 	set CONFIG to regex(posix_basename(theConfig), "^config-?|\\.ini$", "")
 	set filesDone to 0
@@ -48,7 +47,8 @@ end open
 
 on ApplicationAlias(appName)
 	set lsRegisterPath to "/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister"
-	set theAppPaths to paragraphs of (do shell script lsRegisterPath & " -dump | grep \"path:\" | grep \"" & appName & "\" | sed -E 's/.*path:[ ]+//g'")
+	set lsRegisterCommand to lsRegisterPath & " -dump | grep \"path:\" | grep -v \"Volumes/slic3r\" | grep \"" & appName & "\" | sed -E 's/.*path:[ ]+//g'"
+	set theAppPaths to paragraphs of (do shell script lsRegisterCommand)
 	set shortestPath to ""
 	repeat with appPath in theAppPaths
 		if shortestPath is "" or appPath's length is less than shortestPath's length then
