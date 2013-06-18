@@ -1,5 +1,5 @@
--- Slic3r batch script by Thinkyhead
--- Version 1.2 (June 17, 2013)
+-- Slicer batch script by Thinkyhead
+-- Version 1.2 (June 18, 2013)
 -- Drop an STL onto this, choose a config file, and wait
 
 on open fileList
@@ -44,7 +44,7 @@ on open fileList
 				set BASENAME to regex(stlPath, "\\.stl", "")
 				set OUTNAME to BASENAME
 				if not CONFIG = "" then set OUTNAME to OUTNAME & "-" & CONFIG
-				do shell script "mv " & (quoted form of (BASENAME & ".gcode")) & " " & (quoted form of (BASENAME & GEXT))
+				do shell script "mv " & (quoted form of (BASENAME & ".gcode")) & " " & (quoted form of (OUTNAME & GEXT))
 			end repeat
 		end if
 		
