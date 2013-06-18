@@ -1,32 +1,73 @@
 -- Slic3r batch script by Thinkyhead
--- Version 1.2 (June 6, 2013)
+-- Version 1.2 (June 17, 2013)
 -- Drop an STL onto this, choose a config file, and wait
 
 on open fileList
-	set SLICER_APP to "Slic3r"
-	set slic3rMac to ApplicationAlias(SLICER_APP)
-	set slic3rHome to posix_dirname(slic3rMac)
-	set theConfig to choose file with prompt "Choose a " & SLICER_APP & " config file" of type {"public.plain-text"} default location (POSIX file slic3rHome) without invisibles
-	set SLICER to (POSIX path of slic3rMac) & "Contents/MacOS/slic3r"
+	set SLIC3R to "Slic3r"
+	set CURA to "Cura"
+	
+	set SLICER_APP to CURA
+	set GEXT to ".g"
+	
+	set slicerAlias to ApplicationAlias(SLICER_APP)
+
+	set configDir to POSIX file posix_dirname(slicerAlias)
+	set theConfig to choose file with prompt "Choose a " & SLICER_APP & " config file" default location configDir without invisibles
+	-- of type {"public.plain-text"}
+	
+	set SLICER_EXE to (POSIX path of slicerAlias) & "Contents/MacOS/" & SLICER_APP
 	set CONFIG to regex(posix_basename(theConfig), "^config-?|\\.ini$", "")
 	set filesDone to 0
 	set totalFiles to count fileList
-	repeat with stl in fileList
-		--set perc to (filesDone * 100 / totalFiles) as integer
-		--display dialog "Slicing " & filesDone & " of " & totalFiles & " (" & perc & "%)" giving up after 1 with icon note
-		set stlPath to POSIX path of stl
-		if stlPath ends with ".stl" then
-			set OUTNAME to regex(stlPath, "\\.stl", "")
-			if not CONFIG = "" then set OUTNAME to OUTNAME & "-" & CONFIG
-			
-			do shell script quoted form of SLICER & Â
-				" " & quoted form of stlPath & Â
-				" --load " & quoted form of POSIX path of theConfig & Â
-				" --output " & quoted form of (OUTNAME & ".g")
-			
-			set filesDone to filesDone + 1
+	if SLICER_APP = CURA then
+		
+		-- Concatenate all .stl file names
+		set stlQuoted to ""
+		set fileCount to 0
+		repeat with stl in fileList
+			set stlPath to POSIX path of stl
+			if stlPath ends with ".stl" then
+				set stlQuoted to stlQuoted & " " & quoted form of stlPath
+				set fileCount to fileCount + 1
+			end if
+		end repeat
+		
+		-- Slice all files with one command
+		do shell script quoted form of SLICER_EXE & Â
+			" -i " & quoted form of POSIX path of theConfig & Â
+			" -s" & stlQuoted
+		
+		-- Rename output files if needed
+		if not GEXT = ".gcode" then
+			repeat with stl in fileList
+				set stlPath to POSIX path of stl
+				set BASENAME to regex(stlPath, "\\.stl", "")
+				set OUTNAME to BASENAME
+				if not CONFIG = "" then set OUTNAME to OUTNAME & "-" & CONFIG
+				do shell script "mv " & (quoted form of (BASENAME & ".gcode")) & " " & (quoted form of (BASENAME & GEXT))
+			end repeat
 		end if
-	end repeat
+		
+		set filesDone to fileCount
+	else
+		repeat with stl in fileList
+			--set perc to (filesDone * 100 / totalFiles) as integer
+			--display dialog "Slicing " & filesDone & " of " & totalFiles & " (" & perc & "%)" giving up after 1 with icon note
+			set stlPath to POSIX path of stl
+			if stlPath ends with ".stl" then
+				set OUTNAME to regex(stlPath, "\\.stl", "")
+				if not CONFIG = "" then set OUTNAME to OUTNAME & "-" & CONFIG
+				
+				do shell script quoted form of SLICER_EXE & " " & Â
+					quoted form of stlPath & Â
+					" --load " & quoted form of POSIX path of theConfig & Â
+					" --output " & quoted form of (OUTNAME & GEXT)
+				
+				set filesDone to filesDone + 1
+			end if
+		end repeat
+		
+	end if
 	
 	beep
 	set lingerTime to 5
@@ -47,7 +88,7 @@ end open
 
 on ApplicationAlias(appName)
 	set lsRegisterPath to "/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister"
-	set lsRegisterCommand to lsRegisterPath & " -dump | grep \"path:\" | grep -v \"Volumes/slic3r\" | grep \"" & appName & "\" | sed -E 's/.*path:[ ]+//g'"
+	set lsRegisterCommand to lsRegisterPath & " -dump | grep \"path:\" | grep -v \"Volumes/" & appName & "\" | grep \"/" & appName & ".app\" | sed -E 's/.*path:[ ]+//g'"
 	set theAppPaths to paragraphs of (do shell script lsRegisterCommand)
 	set shortestPath to ""
 	repeat with appPath in theAppPaths
