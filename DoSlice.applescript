@@ -1,24 +1,28 @@
 -- Slicer batch script by Thinkyhead
--- Version 1.2 (June 18, 2013)
+-- Version 1.2.1 (June 26, 2013)
 -- Drop an STL onto this, choose a config file, and wait
 
 on open fileList
 	set SLIC3R to "Slic3r"
 	set CURA to "Cura"
 	
-	set SLICER_APP to CURA
+	set SLICER_APP to SLIC3R
 	set GEXT to ".g"
 	
 	set slicerAlias to ApplicationAlias(SLICER_APP)
-
-	set configDir to POSIX file posix_dirname(slicerAlias)
+	
+	set configPath to posix_dirname(slicerAlias)
+	if PathExists(configPath & "/_configs") then
+		set configPath to configPath & "/_configs"
+	end if
+	set configDir to POSIX file configPath
 	set theConfig to choose file with prompt "Choose a " & SLICER_APP & " config file" default location configDir without invisibles
-	-- of type {"public.plain-text"}
 	
 	set SLICER_EXE to (POSIX path of slicerAlias) & "Contents/MacOS/" & SLICER_APP
 	set CONFIG to regex(posix_basename(theConfig), "^config-?|\\.ini$", "")
 	set filesDone to 0
 	set totalFiles to count fileList
+	
 	if SLICER_APP = CURA then
 		
 		-- Concatenate all .stl file names
@@ -86,14 +90,18 @@ on open fileList
 	
 end open
 
+on PathExists(path)
+	return (do shell script "[ -d " & quoted form of path & " ] && echo 1 || echo 0") = "1"
+end PathExists
+
 on ApplicationAlias(appName)
 	set lsRegisterPath to "/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister"
-	set lsRegisterCommand to lsRegisterPath & " -dump | grep \"path:\" | grep -v \"Volumes/" & appName & "\" | grep \"/" & appName & ".app\" | sed -E 's/.*path:[ ]+//g'"
+	set lsRegisterCommand to lsRegisterPath & " -dump | grep -E \"path: +.*/" & appName & ".app\" | grep -vE \"(Volumes|\\.Trash)/" & appName & "\" | sed -E 's/.*path: +//g'"
 	set theAppPaths to paragraphs of (do shell script lsRegisterCommand)
 	set shortestPath to ""
 	repeat with appPath in theAppPaths
-		if shortestPath is "" or appPath's length is less than shortestPath's length then
-			set shortestPath to appPath as string
+		if (PathExists(appPath)) then
+			set shortestPath to appPath
 		end if
 	end repeat
 	return POSIX file shortestPath as alias
