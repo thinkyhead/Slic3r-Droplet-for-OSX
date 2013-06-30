@@ -1,5 +1,5 @@
 -- Slicer batch script by Thinkyhead
--- Version 1.2.1 (June 26, 2013)
+-- Version 1.2.2 (June 29, 2013)
 -- Drop an STL onto this, choose a config file, and wait
 
 on open fileList
@@ -7,6 +7,7 @@ on open fileList
 	set CURA to "Cura"
 	
 	set SLICER_APP to SLIC3R
+	set ONE_AT_A_TIME to true
 	set GEXT to ".g"
 	
 	set slicerAlias to ApplicationAlias(SLICER_APP)
@@ -26,20 +27,35 @@ on open fileList
 	if SLICER_APP = CURA then
 		
 		-- Concatenate all .stl file names
-		set stlQuoted to ""
 		set fileCount to 0
-		repeat with stl in fileList
-			set stlPath to POSIX path of stl
-			if stlPath ends with ".stl" then
-				set stlQuoted to stlQuoted & " " & quoted form of stlPath
-				set fileCount to fileCount + 1
-			end if
-		end repeat
 		
-		-- Slice all files with one command
-		do shell script quoted form of SLICER_EXE & Â
-			" -i " & quoted form of POSIX path of theConfig & Â
-			" -s" & stlQuoted
+		if ONE_AT_A_TIME then
+			repeat with stl in fileList
+				set stlPath to POSIX path of stl
+				if stlPath ends with ".stl" then
+					do shell script quoted form of SLICER_EXE & Â
+						" -i " & quoted form of POSIX path of theConfig & Â
+						" -s " & quoted form of stlPath
+					set fileCount to fileCount + 1
+				end if
+			end repeat
+		else
+			set stlQuoted to ""
+			repeat with stl in fileList
+				set stlPath to POSIX path of stl
+				if stlPath ends with ".stl" then
+					set stlQuoted to stlQuoted & " " & quoted form of stlPath
+					set fileCount to fileCount + 1
+				end if
+			end repeat
+			
+			-- Slice all files with one command
+			set curaThemAll to quoted form of SLICER_EXE & Â
+				" -i " & quoted form of POSIX path of theConfig & Â
+				" -s" & stlQuoted
+			
+			do shell script curaThemAll
+		end if
 		
 		-- Rename output files if needed
 		if not GEXT = ".gcode" then
@@ -48,7 +64,11 @@ on open fileList
 				set BASENAME to regex(stlPath, "\\.stl", "")
 				set OUTNAME to BASENAME
 				if not CONFIG = "" then set OUTNAME to OUTNAME & "-" & CONFIG
-				do shell script "mv " & (quoted form of (BASENAME & ".gcode")) & " " & (quoted form of (OUTNAME & GEXT))
+				set ORIG1 to quoted form of (BASENAME & ".gcode")
+				set ORIG2 to quoted form of (stlPath & ".gcode")
+				do shell script "test -f " & ORIG1 & " && mv " & ORIG1 & " " & (quoted form of (OUTNAME & GEXT)) Â
+					& "|| test -f " & ORIG2 & " && mv " & ORIG2 & " " & (quoted form of (OUTNAME & GEXT)) Â
+					& " || exit 0"
 			end repeat
 		end if
 		
