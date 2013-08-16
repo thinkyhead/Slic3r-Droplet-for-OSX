@@ -6,9 +6,9 @@ on open fileList
 	set SLIC3R to "Slic3r"
 	set CURA to "Cura"
 	
-	set SLICER_APP to SLIC3R
+	set SLICER_APP to CURA
 	set ONE_AT_A_TIME to true
-	set GEXT to ".g"
+	set GEXT to ".gcode"
 	
 	set slicerAlias to ApplicationAlias(SLICER_APP)
 	
@@ -58,19 +58,17 @@ on open fileList
 		end if
 		
 		-- Rename output files if needed
-		if not GEXT = ".gcode" then
-			repeat with stl in fileList
-				set stlPath to POSIX path of stl
-				set BASENAME to regex(stlPath, "\\.stl", "")
-				set OUTNAME to BASENAME
-				if not CONFIG = "" then set OUTNAME to OUTNAME & "-" & CONFIG
-				set ORIG1 to quoted form of (BASENAME & ".gcode")
-				set ORIG2 to quoted form of (stlPath & ".gcode")
-				do shell script "test -f " & ORIG1 & " && mv " & ORIG1 & " " & (quoted form of (OUTNAME & GEXT)) Â
-					& "|| test -f " & ORIG2 & " && mv " & ORIG2 & " " & (quoted form of (OUTNAME & GEXT)) Â
-					& " || exit 0"
-			end repeat
-		end if
+		repeat with stl in fileList
+			set stlPath to POSIX path of stl
+			set BASENAME to regex(stlPath, "\\.stl", "")
+			set OUTNAME to BASENAME
+			if not CONFIG = "" then set OUTNAME to OUTNAME & "-" & CONFIG
+			set ORIG1 to quoted form of (BASENAME & ".gcode")
+			set ORIG2 to quoted form of (stlPath & ".gcode")
+			do shell script "test -f " & ORIG1 & " && mv " & ORIG1 & " " & (quoted form of (OUTNAME & GEXT)) Â
+				& "|| test -f " & ORIG2 & " && mv " & ORIG2 & " " & (quoted form of (OUTNAME & GEXT)) Â
+				& " || exit 0"
+		end repeat
 		
 		set filesDone to fileCount
 	else
