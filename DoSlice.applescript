@@ -96,6 +96,8 @@ on open fileList
 	set timestamp1 to (do shell script "date +%s") as integer
 	display dialog "Done slicing " & filesDone & " objects!" giving up after lingerTime with icon note
 	set timestamp2 to (do shell script "date +%s") as integer
+
+if SLICER_APP = SLIC3R then
 	set leftover to lingerTime - (timestamp2 - timestamp1)
 	if leftover < 0.5 then set leftover to 0.5
 	repeat leftover * 2 times
@@ -105,6 +107,7 @@ on open fileList
 		end if
 		delay 0.5
 	end repeat
+end if
 	
 end open
 
