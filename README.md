@@ -10,6 +10,6 @@ Workflow
 - You are asked to choose a Slic3r or Cura configuration (.ini) file.
 - The dropped STL files will be sliced using the selected configuration.
 - Output files are named after the configuration file.
-  - ("Gear.stl" and "PLA for Mendel.ini" gives "Gear-PLA for Mendel.g")
+  - ("Gear.stl" + "ABS-0.3mm-20%.ini" = "Gear-ABS-0.3mm-20%.gcode")
 
 Put DoSlice.app and DoCura.app in the Finder toolbar or Dock for easy drag-and-drop slicing.
