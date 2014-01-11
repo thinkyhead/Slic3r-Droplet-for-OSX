@@ -1,5 +1,5 @@
 -- Slicer batch script by Thinkyhead
--- Version 1.2.2 (June 29, 2013)
+-- Version 1.2.3 (January 10, 2014)
 -- Drop an STL onto this, choose a config file, and wait
 
 on open fileList
@@ -96,18 +96,18 @@ on open fileList
 	set timestamp1 to (do shell script "date +%s") as integer
 	display dialog "Done slicing " & filesDone & " objects!" giving up after lingerTime with icon note
 	set timestamp2 to (do shell script "date +%s") as integer
-
-if SLICER_APP = SLIC3R then
-	set leftover to lingerTime - (timestamp2 - timestamp1)
-	if leftover < 0.5 then set leftover to 0.5
-	repeat leftover * 2 times
-		if application SLICER_APP is running then
-			tell application SLICER_APP to quit
-			quit
-		end if
-		delay 0.5
-	end repeat
-end if
+	
+	if SLICER_APP = SLIC3R then
+		set leftover to lingerTime - (timestamp2 - timestamp1)
+		if leftover < 0.5 then set leftover to 0.5
+		repeat leftover * 2 times
+			if application SLICER_APP is running then
+				tell application SLICER_APP to quit
+				quit
+			end if
+			delay 0.5
+		end repeat
+	end if
 	
 end open
 
@@ -117,7 +117,7 @@ end PathExists
 
 on ApplicationAlias(appName)
 	set lsRegisterPath to "/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister"
-	set lsRegisterCommand to lsRegisterPath & " -dump | grep -E \"path: +.*/" & appName & ".app\" | grep -vE \"(Volumes|\\.Trash)/" & appName & "\" | sed -E 's/.*path: +//g'"
+	set lsRegisterCommand to lsRegisterPath & " -dump | grep -E \"path: +.*/" & appName & ".app\" | grep -vE \"(Volumes|\\.Trash|Contents/Resources)/" & appName & "\" | sed -E 's/.*path: +//g'"
 	set theAppPaths to paragraphs of (do shell script lsRegisterCommand)
 	set shortestPath to ""
 	repeat with appPath in theAppPaths
