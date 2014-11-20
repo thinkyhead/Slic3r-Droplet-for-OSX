@@ -1,12 +1,12 @@
 -- Slicer batch script by Thinkyhead
--- Version 1.2.3 (January 10, 2014)
+-- Version 1.2.4 (March 24, 2014)
 -- Drop an STL onto this, choose a config file, and wait
 
 on open fileList
 	set SLIC3R to "Slic3r"
 	set CURA to "Cura"
 	
-	set SLICER_APP to CURA
+	set SLICER_APP to SLIC3R
 	set ONE_AT_A_TIME to true
 	set GEXT to ".gcode"
 	
@@ -117,7 +117,7 @@ end PathExists
 
 on ApplicationAlias(appName)
 	set lsRegisterPath to "/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister"
-	set lsRegisterCommand to lsRegisterPath & " -dump | grep -E \"path: +.*/" & appName & ".app\" | grep -vE \"(Volumes|\\.Trash|Contents/Resources)/" & appName & "\" | sed -E 's/.*path: +//g'"
+	set lsRegisterCommand to lsRegisterPath & " -dump | grep -E \"path: +.*/" & appName & ".app\" | grep -vE \"(Volumes|\\.Trash|Contents/(Resources|MonoBundle))/" & appName & "\" | sed -E 's/.*path: +//g'"
 	set theAppPaths to paragraphs of (do shell script lsRegisterCommand)
 	set shortestPath to ""
 	repeat with appPath in theAppPaths
